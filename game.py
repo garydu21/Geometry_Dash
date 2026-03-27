@@ -5,7 +5,7 @@ from world_generation import *
 # Initialize Pygame
 pygame.init()
 
-level = 0
+level = 1
 
 bg = pygame.image.load(image_backgroung(level))
 

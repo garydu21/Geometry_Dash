@@ -1,6 +1,7 @@
 import time
 from pynput.keyboard import *
 from pynput.mouse import Listener as MouseListener, Button
+from colorama import Fore
 
 from world_generation import *
 
@@ -27,7 +28,7 @@ perdu = False
 vitesse = 0.7
 
 
-def render_console(level):
+def render_console(): # Bug, la map se duplique une fois sur les 16 premiers elements
     global map_matrice, hauteur, longeur, perdu
 
     apparition_joueur()
@@ -42,9 +43,9 @@ def render_console(level):
             for x in range(hauteur):
                 for y in range(taille_jeu):
                     if x == joueur_x and y == joueur_y:
-                        print('b', end='  ')
+                        print(Fore.YELLOW + "b", end='  ')
                     else:
-                        print(map_matrice[x][y], end='  ')
+                        print(Fore.WHITE + map_matrice[x][y], end='  ')
                 print()
 
             compteur, niveau_fini = avancement()
@@ -151,6 +152,6 @@ listener.start()
 mouse_listener = MouseListener(on_click=on_click)
 mouse_listener.start()
 
-render_console(level)
+render_console()
 
 listener.stop()
