@@ -29,7 +29,7 @@ vitesse = 0.7
 
 
 def render_console(): # Bug, la map se duplique une fois sur les 16 premiers elements
-    global map_matrice, hauteur, longeur, perdu
+    global map_matrice, hauteur, longeur, perdu, compteur, case_actuelle
 
     apparition_joueur()
 
@@ -83,7 +83,7 @@ def avancement():
             for lig in range(hauteur):
                 map_matrice[lig][col] = map_matrice[lig][col + 1]
 
-        prochaine_colonne = compteur + 1
+        prochaine_colonne = compteur + taille_jeu
 
         for lig in range(hauteur):
             if prochaine_colonne < longeur:
@@ -104,11 +104,19 @@ def au_sol():
 def physique():
     global joueur_x, joueur_y, saute, saut_restant, action_fini
 
+    if map_matrice[joueur_x][joueur_y-1] == 'P':
+        saute = False
+        joueur_x -= 3
+        saut_restant = 1
+
+    if map_matrice[joueur_x][joueur_y-1] == "J" and saute:
+        saute = False
+        joueur_x -= 3
+        saut_restant = 1
 
     if saute and au_sol():
         saute = False
         saut_restant = 2
-
 
     if saut_restant == 2:
         saut_restant -= 1
