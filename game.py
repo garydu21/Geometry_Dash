@@ -5,7 +5,7 @@ from world_generation import *
 # Initialize Pygame
 pygame.init()
 
-level = 1
+level = 0
 
 bg = pygame.image.load(image_backgroung(level))
 
@@ -17,10 +17,14 @@ def lanceur():
     # Game loop
     running = True
     camera_x = 0
-    speed = 1.5
+    speed = 10
     map = read_csv(level)
     skin = {
-        "0": pygame.image.load(f"images/block_texture/block_{level}.png").convert_alpha()
+        "0": pygame.image.load(f"images/texture/block/block_{level}.png").convert_alpha(),
+        "S" : pygame.image.load(f"images/texture/object/spike.png").convert_alpha(),
+        "J" : pygame.image.load(f"images/texture/object/orb-yellow.png").convert_alpha(),
+        "P" : pygame.image.load(f"images/texture/object/jump-pad-yellow.png").convert_alpha(),
+        "B" : pygame.image.load(f"images/texture/player_skin/avatar.png").convert_alpha(),
             }
     while running:
         for event in pygame.event.get():
@@ -34,7 +38,9 @@ def lanceur():
                 screen.blit(bg, (x * 800 - camera_x, y * 800))
         build_map(screen,camera_x,0,skin,map)
         pygame.display.update()
-        camera_x += speed
+
+        if not fin_niveau():
+            camera_x += speed
 
 
     # Quit Pygame
