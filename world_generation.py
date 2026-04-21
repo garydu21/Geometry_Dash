@@ -24,7 +24,6 @@ def build_map(screen,camera_x,camera_y,skin,map):
 
     hauteur = len(map)
     map_actuelle = [ligne[x_debut:x_fin] for ligne in map]
-    print(map_actuelle)
 
     size = 80
     bloc = skin["0"]
@@ -82,7 +81,61 @@ def collision_bloc(map, x, y, largeur, hauteur):
     return False
 
 
-def draw_player(screen, camera_x, skin, player_x, player_y):
+def collision_spike(map, x, y, largeur, hauteur):
+    size = 80
+    marge = 6
+    gauche = int((x + marge) // size)
+    droite = int((x + largeur - 1 - marge) // size)
+    haut = int((y + 400 + marge) // size)
+    bas = int((y + 400 + hauteur - 1) // size)
+
+    for j in range(haut, bas + 1):
+        for i in range(gauche, droite + 1):
+            if 0 <= j < len(map) and 0 <= i < len(map[0]):
+                if map[j][i] == "S":
+                    return True
+    return False
+
+
+def collision_pad(map, x, y, largeur, hauteur):
+    size = 80
+    gauche = int(x // size)
+    droite = int((x + largeur - 1) // size)
+    haut = int((y + 400) // size)
+    bas = int((y + 400 + hauteur - 1) // size)
+
+    for j in range(haut, bas + 1):
+        pad_top = j * size - 400 + size - 13  # position visuelle du pad en pixels
+        if y + hauteur - 1 < pad_top:
+            continue
+        for i in range(gauche, droite + 1):
+            if 0 <= j < len(map) and 0 <= i < len(map[0]):
+                if map[j][i] == "P":
+                    return True
+    return False
+
+
+def collision_orb(map, x, y, largeur, hauteur):
+    size = 80
+    gauche = int(x // size)
+    droite = int((x + largeur - 1) // size)
+    haut = int((y + 400) // size)
+    bas = int((y + 400 + hauteur - 1) // size)
+
+    for j in range(haut, bas + 1):
+        for i in range(gauche, droite + 1):
+            if 0 <= j < len(map) and 0 <= i < len(map[0]):
+                if map[j][i] == "J":
+                    return True
+    return False
+
+
+def draw_player(screen, camera_x, skin, player_x, player_y, angle=0):
     player = skin["B"]
     offset_x = 350
-    screen.blit(player, (player_x - camera_x - offset_x, player_y))
+    rotated = pygame.transform.rotate(player, angle)
+    orig_w, orig_h = player.get_size()
+    rot_w, rot_h = rotated.get_size()
+    dx = (rot_w - orig_w) // 2
+    dy = (rot_h - orig_h) // 2
+    screen.blit(rotated, (player_x - camera_x - offset_x - dx, player_y - dy))
