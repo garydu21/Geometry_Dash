@@ -3,16 +3,27 @@ from world_generation import *
 
 pygame.init()
 
-LEVEL = 1
-SPEED = 7
-GRAVITE = 1
-VITESSE_SAUT = -20
+LEVEL = 0
+SPEED = 13
+GRAVITE = 2
+VITESSE_SAUT = -27
 VITESSE_PAD = -24
 FPS = 60
 
 screen = pygame.display.set_mode((1920, 1080))
 pygame.display.set_caption("Geometry Dash")
 clock = pygame.time.Clock()
+
+pygame.mixer.init()
+pygame.mixer.music.load(f"musiques/world_music_{LEVEL}.mp3")
+pygame.mixer.music.set_volume(0.4)
+pygame.mixer.music.play(-1)
+
+death_sound = pygame.mixer.Sound("soundeffect/explode.ogg")
+death_sound.set_volume(0.2)
+
+win_sound = pygame.mixer.Sound("soundeffect/end.ogg")
+win_sound.set_volume(0.7)
 
 
 def dessiner_fond(screen, bg, camera_x):
@@ -101,6 +112,13 @@ def lanceur():
             camera_x += SPEED
             player_x += SPEED
 
+            prochain_x = player_x
+
+            cx = prochain_x - 350
+            if collision_bloc(map, cx, player_y, player_largeur, player_hauteur):
+                game_over = True
+                death_sound.play()
+
             cx = player_x - 350
             vitesse_y += GRAVITE
 
@@ -133,12 +151,14 @@ def lanceur():
             # Mort
             if collision_spike(map, cx, player_y, player_largeur, player_hauteur):
                 game_over = True
+                death_sound.play()
             if player_y > screen_h:
                 game_over = True
 
             # Fin Level
             if fin_niveau():
                 niveau_complete = True
+                win_sound.play()
 
         build_map(screen, camera_x, 0, skin, map)
         draw_player(screen, camera_x, skin, player_x, player_y, player_angle)
@@ -148,11 +168,15 @@ def lanceur():
             sub = font_small.render("R pour relancer  |  ESC pour quitter", True, (255, 255, 255))
             screen.blit(text, (screen_w // 2 - text.get_width() // 2, screen_h // 2 - 80))
             screen.blit(sub, (screen_w // 2 - sub.get_width() // 2, screen_h // 2 + 20))
+
+            pygame.mixer.music.stop()
+
         elif niveau_complete:
             text = font_big.render("NIVEAU TERMINÉ !", True, (50, 255, 100))
             sub = font_small.render("R pour relancer  |  ESC pour quitter", True, (255, 255, 255))
             screen.blit(text, (screen_w // 2 - text.get_width() // 2, screen_h // 2 - 80))
             screen.blit(sub, (screen_w // 2 - sub.get_width() // 2, screen_h // 2 + 20))
+            pygame.mixer.music.stop()
 
         pygame.display.update()
 
