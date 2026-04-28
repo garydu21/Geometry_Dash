@@ -83,10 +83,13 @@ def collision_bloc(map, x, y, largeur, hauteur):
 
 def collision_spike(map, x, y, largeur, hauteur):
     size = 80
-    marge = 6
-    gauche = int((x + marge) // size)
-    droite = int((x + largeur - 1 - marge) // size)
-    haut = int((y + 400 + marge) // size)
+
+    marge_x = 18
+    marge_y = 10
+
+    gauche = int((x + marge_x) // size)
+    droite = int((x + largeur - 1 - marge_x) // size)
+    haut = int((y + 400 + marge_y) // size)
     bas = int((y + 400 + hauteur - 1) // size)
 
     for j in range(haut, bas + 1):

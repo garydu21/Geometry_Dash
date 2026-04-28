@@ -14,11 +14,6 @@ screen = pygame.display.set_mode((1920, 1080))
 pygame.display.set_caption("Geometry Dash")
 clock = pygame.time.Clock()
 
-pygame.mixer.init()
-pygame.mixer.music.load(f"musiques/world_music_{LEVEL}.mp3")
-pygame.mixer.music.set_volume(0.4)
-pygame.mixer.music.play(-1)
-
 death_sound = pygame.mixer.Sound("soundeffect/explode.ogg")
 death_sound.set_volume(0.2)
 
@@ -41,6 +36,10 @@ def dessiner_fond(screen, bg, camera_x):
 
 
 def lanceur():
+    pygame.mixer.init()
+    pygame.mixer.music.load(f"musiques/world_music_{LEVEL}.mp3")
+    pygame.mixer.music.set_volume(0.4)
+    pygame.mixer.music.play(-1)
     running = True
     camera_x = 0
     vitesse_y = 0
@@ -50,6 +49,8 @@ def lanceur():
     peut_sauter_orb = True
     player_angle = 0.0
     jump_held = False
+
+    couldown = 0
 
     bg = pygame.image.load(image_backgroung(LEVEL))
     map = read_csv(LEVEL)
@@ -154,9 +155,10 @@ def lanceur():
                 death_sound.play()
             if player_y > screen_h:
                 game_over = True
+                death_sound.play()
 
             # Fin Level
-            if fin_niveau():
+            if fin_niveau() and couldown >= 50:
                 niveau_complete = True
                 win_sound.play()
 
@@ -179,6 +181,7 @@ def lanceur():
             pygame.mixer.music.stop()
 
         pygame.display.update()
+        couldown += 1
 
     pygame.quit()
 
