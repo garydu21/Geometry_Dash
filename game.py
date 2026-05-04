@@ -189,12 +189,12 @@ def lanceur(deaths=0):
             pygame.mixer.music.stop()
 
         prog = max(0, min(100, int(camera_x * 100 / (LEVEL_WIDTHS.get(LEVEL, 150) * 80))))
-        if time.time() - last_prog_send >= 0.5 :
+        if time.time() - last_prog_send >= 1 :
             arduino_send_progress(prog)
             last_prog_send = time.time()
 
         pygame.display.update()
-        couldown += 1
+        couldown += 1 
 
     pygame.quit()
     arduino_close()
