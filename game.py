@@ -3,7 +3,7 @@ from world_generation import *
 
 pygame.init()
 
-LEVEL = 0
+LEVEL = 2
 SPEED = 13
 GRAVITE = 2
 VITESSE_SAUT = -27
