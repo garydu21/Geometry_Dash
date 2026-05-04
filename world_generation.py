@@ -24,7 +24,6 @@ def build_map(screen,camera_x,camera_y,skin,map):
 
     hauteur = len(map)
     map_actuelle = [ligne[x_debut:x_fin] for ligne in map]
-    print(map_actuelle)
 
     size = 80
     bloc = skin["0"]
@@ -45,8 +44,6 @@ def build_map(screen,camera_x,camera_y,skin,map):
                 screen.blit(orb, (x_monde * size - camera_x, y * size - 400))
             if element == "P":
                 screen.blit(pad, (x_monde * size - camera_x, y*size - 400 + 80 - 13)) #80 = taille bloc et 13 = taille pad
-            if element == "B":
-                screen.blit(player, (x_monde * size - camera_x, y * size - 400))
 
     colonne_camera = int(camera_x // size)
 
@@ -54,4 +51,94 @@ def build_map(screen,camera_x,camera_y,skin,map):
     x_fin = min(len(map[0]), colonne_camera + 24 + 2)
 
 def fin_niveau():
-    return 'End' in map_actuelle[0] and len(map_actuelle[0]) <= taille_jeu - 1
+    for ligne in map_actuelle:
+        for val in ligne:
+            if val == "End":
+                return True
+    return False
+
+def trouver_joueur(map):
+    for y in range(len(map)):
+        for x in range(len(map[0])):
+            if map[y][x] == "B":
+                return x * 80, y * 80 - 400
+    return 0, 0
+
+
+def collision_bloc(map, x, y, largeur, hauteur):
+    size = 80
+
+    gauche = int(x // size)
+    droite = int((x + largeur - 1) // size)
+    haut = int((y + 400) // size)
+    bas = int((y + 400 + hauteur - 1) // size)
+
+    for j in range(haut, bas + 1):
+        for i in range(gauche, droite + 1):
+            if 0 <= j < len(map) and 0 <= i < len(map[0]):
+                if map[j][i] == "0":
+                    return True
+    return False
+
+
+def collision_spike(map, x, y, largeur, hauteur):
+    size = 80
+
+    marge_x = 18
+    marge_y = 10
+
+    gauche = int((x + marge_x) // size)
+    droite = int((x + largeur - 1 - marge_x) // size)
+    haut = int((y + 400 + marge_y) // size)
+    bas = int((y + 400 + hauteur - 1) // size)
+
+    for j in range(haut, bas + 1):
+        for i in range(gauche, droite + 1):
+            if 0 <= j < len(map) and 0 <= i < len(map[0]):
+                if map[j][i] == "S":
+                    return True
+    return False
+
+
+def collision_pad(map, x, y, largeur, hauteur):
+    size = 80
+    gauche = int(x // size)
+    droite = int((x + largeur - 1) // size)
+    haut = int((y + 400) // size)
+    bas = int((y + 400 + hauteur - 1) // size)
+
+    for j in range(haut, bas + 1):
+        pad_top = j * size - 400 + size - 13  # position visuelle du pad en pixels
+        if y + hauteur - 1 < pad_top:
+            continue
+        for i in range(gauche, droite + 1):
+            if 0 <= j < len(map) and 0 <= i < len(map[0]):
+                if map[j][i] == "P":
+                    return True
+    return False
+
+
+def collision_orb(map, x, y, largeur, hauteur):
+    size = 80
+    gauche = int(x // size)
+    droite = int((x + largeur - 1) // size)
+    haut = int((y + 400) // size)
+    bas = int((y + 400 + hauteur - 1) // size)
+
+    for j in range(haut, bas + 1):
+        for i in range(gauche, droite + 1):
+            if 0 <= j < len(map) and 0 <= i < len(map[0]):
+                if map[j][i] == "J":
+                    return True
+    return False
+
+
+def draw_player(screen, camera_x, skin, player_x, player_y, angle=0):
+    player = skin["B"]
+    offset_x = 350
+    rotated = pygame.transform.rotate(player, angle)
+    orig_w, orig_h = player.get_size()
+    rot_w, rot_h = rotated.get_size()
+    dx = (rot_w - orig_w) // 2
+    dy = (rot_h - orig_h) // 2
+    screen.blit(rotated, (player_x - camera_x - offset_x - dx, player_y - dy))
