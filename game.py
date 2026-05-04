@@ -1,14 +1,23 @@
 import pygame
+import time
 from world_generation import *
+from arduino_sender import arduino_init, arduino_send_level, arduino_send_death, arduino_send_progress, arduino_close
 
 pygame.init()
 
-LEVEL = 2
+LEVEL = 0
 SPEED = 13
 GRAVITE = 2
 VITESSE_SAUT = -27
 VITESSE_PAD = -24
 FPS = 60
+
+LEVEL_WIDTHS = {0: 196, 1: 150, 2: 200}
+
+arduino_init(port="/dev/ttyACM1")
+arduino_send_level(LEVEL)
+time.sleep(0.1)
+arduino_send_death(0)
 
 screen = pygame.display.set_mode((1920, 1080))
 pygame.display.set_caption("Geometry Dash")
@@ -35,11 +44,13 @@ def dessiner_fond(screen, bg, camera_x):
         x += bg_w
 
 
-def lanceur():
+def lanceur(deaths=0):
     pygame.mixer.init()
     pygame.mixer.music.load(f"musiques/world_music_{LEVEL}.mp3")
     pygame.mixer.music.set_volume(0.4)
     pygame.mixer.music.play(-1)
+
+
     running = True
     camera_x = 0
     vitesse_y = 0
@@ -49,8 +60,8 @@ def lanceur():
     peut_sauter_orb = True
     player_angle = 0.0
     jump_held = False
-
     couldown = 0
+    last_prog_send = 0.0
 
     bg = pygame.image.load(image_backgroung(LEVEL))
     map = read_csv(LEVEL)
@@ -81,7 +92,7 @@ def lanceur():
                 if event.key == pygame.K_ESCAPE:
                     running = False
                 if event.key == pygame.K_r and (game_over or niveau_complete):
-                    lanceur()
+                    lanceur(deaths)
                     return
                 if event.key in (pygame.K_SPACE, pygame.K_UP) and not game_over and not niveau_complete:
                     jump_held = True
@@ -113,21 +124,18 @@ def lanceur():
             camera_x += SPEED
             player_x += SPEED
 
-            prochain_x = player_x
-
-            cx = prochain_x - 350
+            cx = player_x - 350
             if collision_bloc(map, cx, player_y, player_largeur, player_hauteur):
                 game_over = True
+                deaths += 1
+                arduino_send_death(deaths)
                 death_sound.play()
 
-            cx = player_x - 350
             vitesse_y += GRAVITE
 
-            # Jump pad
             if collision_pad(map, cx, player_y, player_largeur, player_hauteur) and vitesse_y >= 0:
                 vitesse_y = VITESSE_PAD
 
-            # Vertical movement + collision
             prochain_y = player_y + vitesse_y
             if collision_bloc(map, cx, prochain_y, player_largeur, player_hauteur):
                 if vitesse_y > 0:
@@ -149,15 +157,17 @@ def lanceur():
             else:
                 player_angle -= 2.5
 
-            # Mort
             if collision_spike(map, cx, player_y, player_largeur, player_hauteur):
                 game_over = True
+                deaths += 1
+                arduino_send_death(deaths)
                 death_sound.play()
             if player_y > screen_h:
                 game_over = True
+                deaths += 1
+                arduino_send_death(deaths)
                 death_sound.play()
 
-            # Fin Level
             if fin_niveau() and couldown >= 50:
                 niveau_complete = True
                 win_sound.play()
@@ -170,9 +180,7 @@ def lanceur():
             sub = font_small.render("R pour relancer  |  ESC pour quitter", True, (255, 255, 255))
             screen.blit(text, (screen_w // 2 - text.get_width() // 2, screen_h // 2 - 80))
             screen.blit(sub, (screen_w // 2 - sub.get_width() // 2, screen_h // 2 + 20))
-
             pygame.mixer.music.stop()
-
         elif niveau_complete:
             text = font_big.render("NIVEAU TERMINÉ !", True, (50, 255, 100))
             sub = font_small.render("R pour relancer  |  ESC pour quitter", True, (255, 255, 255))
@@ -180,10 +188,16 @@ def lanceur():
             screen.blit(sub, (screen_w // 2 - sub.get_width() // 2, screen_h // 2 + 20))
             pygame.mixer.music.stop()
 
+        prog = max(0, min(100, int(camera_x * 100 / (LEVEL_WIDTHS.get(LEVEL, 150) * 80))))
+        if time.time() - last_prog_send >= 0.5 :
+            arduino_send_progress(prog)
+            last_prog_send = time.time()
+
         pygame.display.update()
         couldown += 1
 
     pygame.quit()
+    arduino_close()
 
 
 lanceur()
