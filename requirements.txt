@@ -1,0 +1,4 @@
+pynput
+pygame
+colorama
+pyserial
